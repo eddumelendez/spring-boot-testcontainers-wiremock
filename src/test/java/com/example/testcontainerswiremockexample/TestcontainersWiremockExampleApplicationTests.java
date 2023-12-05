@@ -15,8 +15,7 @@ import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 
 @SpringBootTest
 @Testcontainers
@@ -25,6 +24,7 @@ class TestcontainersWiremockExampleApplicationTests {
 	private static final Logger LOGGER = LoggerFactory.getLogger("wiremock");
 
 	@Container
+	@ServiceConnection
 	static WireMockContainer wireMock = new WireMockContainer("wiremock/wiremock:3.2.0-alpine")
 			.withMapping("graphql", TestcontainersWiremockExampleApplicationTests.class, "graphql-resource.json")
 			.withExtensions("graphql",
@@ -32,12 +32,6 @@ class TestcontainersWiremockExampleApplicationTests {
 					List.of(Paths.get("target", "test-wiremock-extension", "wiremock-graphql-extension-0.7.1-jar-with-dependencies.jar").toFile()))
 			.withFileFromResource("testcontainers-java.json", TestcontainersWiremockExampleApplicationTests.class, "testcontainers-java.json")
 			.withLogConsumer(new Slf4jLogConsumer(LOGGER));
-
-	@DynamicPropertySource
-	static void properties(DynamicPropertyRegistry registry) {
-		registry.add("github.url", wireMock::getBaseUrl);
-		registry.add("github.token", () -> "test");
-	}
 
 	@Autowired
 	private GHService ghService;
